@@ -1,0 +1,1 @@
+export { HistoryPageEnhanced as HistoryPage } from './HistoryPageEnhanced';

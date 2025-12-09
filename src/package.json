@@ -1,0 +1,19 @@
+{
+  "name": "bodygoal-microservices",
+  "version": "1.0.0",
+  "description": "Architecture microservices pour BodyGoal - Projet d'école",
+  "scripts": {
+    "docker:up": "docker-compose up --build",
+    "docker:up:d": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:ps": "docker-compose ps",
+    "docker:restart": "docker-compose down && docker-compose up --build",
+    "docker:clean": "docker-compose down -v && docker system prune -af",
+    "install:all": "chmod +x install-all.sh && ./install-all.sh",
+    "test:health": "node test-health.js"
+  },
+  "keywords": ["microservices", "bodygoal", "fitness", "docker"],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - WORKOUTS_SERVICE_URL=http://workouts-service:3002
+      - NUTRITION_SERVICE_URL=http://nutrition-service:3003
+      - PR_SERVICE_URL=http://pr-service:3004
+      - TEMPLATES_SERVICE_URL=http://templates-service:3005
+      - CHATBOT_SERVICE_URL=http://chatbot-service:3006
+    depends_on:
+      - auth-service
+      - workouts-service
+      - nutrition-service
+      - pr-service
+      - templates-service
+      - chatbot-service
+    networks:
+      - bodygoal-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-auth
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/auth-service/.env
+    networks:
+      - bodygoal-network
+
+  # Workouts Service
+  workouts-service:
+    build:
+      context: ./services/workouts-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-workouts
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/workouts-service/.env
+    networks:
+      - bodygoal-network
+
+  # Nutrition Service
+  nutrition-service:
+    build:
+      context: ./services/nutrition-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-nutrition
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./services/nutrition-service/.env
+    networks:
+      - bodygoal-network
+
+  # Personal Records Service
+  pr-service:
+    build:
+      context: ./services/pr-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-pr
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./services/pr-service/.env
+    networks:
+      - bodygoal-network
+
+  # Templates Service
+  templates-service:
+    build:
+      context: ./services/templates-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-templates
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./services/templates-service/.env
+    networks:
+      - bodygoal-network
+
+  # Chatbot Service
+  chatbot-service:
+    build:
+      context: ./services/chatbot-service
+      dockerfile: Dockerfile.prod
+    container_name: bodygoal-chatbot
+    ports:
+      - "3006:3006"
+    env_file:
+      - ./services/chatbot-service/.env
+    networks:
+      - bodygoal-network
+
+networks:
+  bodygoal-network:
+    driver: bridge
