@@ -62,18 +62,18 @@ export function useScheduledWorkouts(startDate?: Date, endDate?: Date) {
     }
 
     try {
-      console.log('🔵 scheduleWorkout called with data:', data);
-      console.log('🔵 Current user ID:', currentUser.uid);
+      console.log('scheduleWorkout called with data:', data);
+      console.log('Current user ID:', currentUser.uid);
       
       await templatesApi.scheduleWorkout(data);
-      console.log('✅ Workout created successfully');
+      console.log('Workout created successfully');
       
       await fetchScheduledWorkouts();
-      console.log('✅ Workouts refreshed');
+      console.log('Workouts refreshed');
       
-      toast.success('Workout scheduled! 📅');
+      toast.success('Workout scheduled!');
     } catch (err) {
-      console.error('❌ Error scheduling workout:', err);
+      console.error('⚠️ Error scheduling workout:', err);
       toast.error('Failed to schedule workout');
       throw err;
     }
@@ -86,15 +86,32 @@ export function useScheduledWorkouts(startDate?: Date, endDate?: Date) {
     }
 
     try {
-      // Schedule multiple workouts for the week based on template
+      // Force midday to avoid TZ -1 day when serialised
+      const dateToUse = new Date(startDate);
+      dateToUse.setHours(12, 0, 0, 0);
+
+      const firstWorkout = template.workouts?.[0];
+      const exercises = (firstWorkout?.exercises || []).map(ex => ({
+        name: ex.name,
+        type: template.focus === 'endurance' ? 'cardio' : 'strength',
+        muscleGroup: [],
+        category: 'Compound',
+        sets: ex.sets,
+        reps: typeof ex.reps === 'string' ? parseInt(ex.reps) || 10 : ex.reps,
+        weight: 0,
+      }));
+
       await templatesApi.scheduleWorkout({
         templateId: template.id,
-        date: startDate,
+        templateName: firstWorkout ? `${template.name} - ${firstWorkout.dayName}` : template.name,
+        type: template.focus === 'endurance' ? 'cardio' : 'strength',
+        date: dateToUse,
+        exercises,
         completed: false,
-        notes: `Week schedule for ${template.name}`
+        notes: `Scheduled from template ${template.name}`
       });
       await fetchScheduledWorkouts();
-      toast.success(`${template.name} scheduled for the week! 🎯`);
+      toast.success(`${template.name} scheduled!`);
     } catch (err) {
       console.error('Error scheduling template:', err);
       toast.error('Failed to schedule template');
@@ -128,7 +145,7 @@ export function useScheduledWorkouts(startDate?: Date, endDate?: Date) {
     try {
       await templatesApi.completeWorkout(workoutId);
       await fetchScheduledWorkouts();
-      toast.success('Workout marked as completed! ✅');
+      toast.success('Workout marked as completed!');
     } catch (err) {
       console.error('Error marking workout completed:', err);
       toast.error('Failed to mark workout completed');

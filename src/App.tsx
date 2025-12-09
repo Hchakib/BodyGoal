@@ -14,7 +14,6 @@ import { StartSessionPageEnhanced } from './components/StartSessionPageEnhanced'
 import PlanningPage from './components/PlanningPage';
 import NutritionPageEnhanced from './components/NutritionPageEnhanced';
 import WorkoutTemplatesPage from './components/WorkoutTemplatesPage';
-import { DebugPanel } from './components/DebugPanel';
 
 type Page = 'landing' | 'login' | 'register' | 'home' | 'history' | 'pr' | 'profile' | 'start-session' | 'planning' | 'nutrition' | 'templates';
 
@@ -85,7 +84,6 @@ function AppContent() {
     <div className="min-h-screen">
       {renderPage()}
       <Toaster position="top-right" theme="dark" />
-      {currentUser && <DebugPanel />}
       {currentUser && <ChatbotWidget />}
     </div>
   );

@@ -29,7 +29,7 @@ export function useNutrition(days: number = 7) {
         // Convert date strings to Date objects
         const entriesWithDates = convertDatesInArray<NutritionEntry>(
           response.meals || [],
-          ['date']
+          ['date', 'createdAt']
         );
         setEntries(entriesWithDates);
         setError(null);
@@ -62,7 +62,7 @@ export function useNutrition(days: number = 7) {
       // Convert date strings to Date objects
       const entriesWithDates = convertDatesInArray<NutritionEntry>(
         response.meals || [],
-        ['date']
+        ['date', 'createdAt']
       );
       setEntries(entriesWithDates);
       
@@ -154,7 +154,7 @@ export function useNutrition(days: number = 7) {
     const entryDate = toDate(entry.date);
     const today = new Date();
     return entryDate.toDateString() === today.toDateString();
-  }).sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+  }).sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime());
 
   return {
     entries,

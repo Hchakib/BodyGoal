@@ -93,8 +93,20 @@ export const scheduleWorkout = async (
 ): Promise<{ id: string; workout: ScheduledWorkout }> => {
   const workoutRef = db.collection('scheduledWorkouts').doc();
 
+  // Normalise la date pour Éviter les dÉcalages de fuseau (stockage à midi local si heure absente)
+  let parsedDate: Date | null = null;
+  const rawDate: any = (workoutData as any).date;
+  if (rawDate) {
+    parsedDate = new Date(rawDate);
+    // Si l'heure est 00:00 (cas d'un jour sÉlectionnÉ sans heure), on force midi pour Éviter -1 jour selon le fuseau
+    if (parsedDate.getHours() === 0 && parsedDate.getMinutes() === 0) {
+      parsedDate.setHours(12, 0, 0, 0);
+    }
+  }
+
   const workout: ScheduledWorkout = {
     ...workoutData,
+    date: parsedDate || new Date(),
     userId,
     createdAt: FieldValue.serverTimestamp(),
   };

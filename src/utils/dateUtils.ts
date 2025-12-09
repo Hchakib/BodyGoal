@@ -1,61 +1,75 @@
 /**
- * Utilitaires pour gérer les dates dans l'application
- * Nécessaire car les Timestamps Firebase sont convertis en strings par l'API REST
+ * Utilitaires pour gérer les dates dans l'application.
+ * Gère les Timestamps Firebase (objet, sérialisé, string), et les objets Date.
  */
 
 /**
- * Convertit une date quelconque en objet Date
- * Gère les Firebase Timestamps, les strings ISO, et les objets Date
+ * Convertit une valeur en objet Date.
  */
 export function toDate(value: any): Date {
-  // Si c'est déjà une Date
+  // Déjà une Date
   if (value instanceof Date) {
     return value;
   }
-  
-  // Si c'est un Firebase Timestamp avec .toDate()
+
+  // Firebase Timestamp avec .toDate()
   if (value && typeof value.toDate === 'function') {
     return value.toDate();
   }
-  
-  // Si c'est un objet Firebase Timestamp sérialisé {_seconds, _nanoseconds}
-  if (value && typeof value === 'object' && '_seconds' in value) {
-    return new Date(value._seconds * 1000);
+
+  // Firebase Timestamp sérialisé {_seconds, _nanoseconds} ou {seconds, nanoseconds}
+  if (value && typeof value === 'object') {
+    if ('_seconds' in value) {
+      return new Date((value as any)._seconds * 1000);
+    }
+    if ('seconds' in value) {
+      return new Date((value as any).seconds * 1000);
+    }
   }
-  
-  // Si c'est un string ISO ou timestamp
+
+  // String ISO ou timestamp numérique
   if (typeof value === 'string' || typeof value === 'number') {
     return new Date(value);
   }
-  
-  // Fallback : date actuelle
+
+  // Fallback : maintenant
   console.warn('Unable to convert value to Date:', value);
   return new Date();
 }
 
 /**
- * Convertit un objet contenant des dates
- * Applique toDate() sur tous les champs spécifiés
+ * Convertit un objet en appliquant toDate sur les champs indiqués.
  */
 export function convertDatesInObject<T>(obj: any, dateFields: string[]): T {
   if (!obj) return obj;
-  
+
   const converted = { ...obj };
-  
   for (const field of dateFields) {
     if (converted[field]) {
       converted[field] = toDate(converted[field]);
     }
   }
-  
   return converted as T;
 }
 
 /**
- * Convertit un tableau d'objets contenant des dates
+ * Convertit un tableau d'objets contenant des dates.
  */
 export function convertDatesInArray<T>(array: any[], dateFields: string[]): T[] {
   if (!array || !Array.isArray(array)) return [];
-  
   return array.map(item => convertDatesInObject<T>(item, dateFields));
+}
+
+// Polyfill : ajoute .toDate() sur les objets Date pour compatibilité avec le code qui attend un Timestamp Firebase
+declare global {
+  interface Date {
+    toDate?: () => Date;
+  }
+}
+
+if (!Date.prototype.toDate) {
+  // eslint-disable-next-line no-extend-native
+  Date.prototype.toDate = function () {
+    return this as Date;
+  };
 }

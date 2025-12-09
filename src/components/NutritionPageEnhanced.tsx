@@ -32,6 +32,7 @@ import { AddMealDialog } from './AddMealDialog';
 import { SetMacroGoalsDialog } from './SetMacroGoalsDialog';
 import { NutritionCalendar } from './NutritionCalendar';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Legend } from 'recharts';
+import { toDate } from '../utils/dateUtils';
 
 interface NutritionPageEnhancedProps {
   onNavigate: (page: string) => void;
@@ -92,7 +93,7 @@ export default function NutritionPageEnhanced({ onNavigate, onLogout }: Nutritio
   // Calculate burned calories from today's workouts
   const todayBurnedCalories = workouts
     .filter(w => {
-      const wDate = w.date.toDate();
+      const wDate = toDate(w.date);
       const today = new Date();
       return wDate.toDateString() === today.toDateString();
     })
@@ -496,7 +497,7 @@ export default function NutritionPageEnhanced({ onNavigate, onLogout }: Nutritio
             <div className="space-y-3">
               {todayEntries.map((entry) => {
                 const Icon = getMealIcon(entry.mealType);
-                const time = entry.createdAt.toDate().toLocaleTimeString('en-US', {
+                const time = toDate(entry.createdAt).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit'
                 });

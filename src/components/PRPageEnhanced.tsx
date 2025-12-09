@@ -25,6 +25,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from './ui/dialog';
+import { toDate } from '../utils/dateUtils';
 
 interface PRPageProps {
   onNavigate: (page: string) => void;
@@ -78,8 +79,8 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
         if (!a || !b) return 0;
         if (b.weight !== a.weight) return b.weight - a.weight;
         try {
-          const dateA = a.date?.toDate ? a.date.toDate().getTime() : 0;
-          const dateB = b.date?.toDate ? b.date.toDate().getTime() : 0;
+          const dateA = a?.date ? toDate(a.date).getTime() : 0;
+          const dateB = b?.date ? toDate(b.date).getTime() : 0;
           return dateB - dateA;
         } catch (error) {
           return 0;
@@ -92,8 +93,8 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
       const history = sortedRecords
         .sort((a, b) => {
           try {
-            const dateA = a.date?.toDate ? a.date.toDate().getTime() : 0;
-            const dateB = b.date?.toDate ? b.date.toDate().getTime() : 0;
+            const dateA = a?.date ? toDate(a.date).getTime() : 0;
+            const dateB = b?.date ? toDate(b.date).getTime() : 0;
             return dateA - dateB;
           } catch (error) {
             return 0;
@@ -101,7 +102,7 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
         })
         .map(r => {
           try {
-            const recordDate = r.date?.toDate ? r.date.toDate() : new Date();
+            const recordDate = r?.date ? toDate(r.date) : new Date();
             return {
               date: recordDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
               weight: r.weight || 0,
@@ -191,8 +192,8 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentPRs = records.filter(r => {
       try {
-        if (!r.date) return false;
-        const recordDate = r.date.toDate ? r.date.toDate() : new Date(r.date);
+        if (!r?.date) return false;
+        const recordDate = toDate(r.date);
         return recordDate >= thirtyDaysAgo;
       } catch (error) {
         console.error('Error parsing PR date in stats:', error);
@@ -446,13 +447,13 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
                           <div>
                             <p className="text-xs text-gray-500 mb-1">Date</p>
                             <p className="text-sm text-white">
-                              {pr.bestRecord.date.toDate().toLocaleDateString('en-US', { 
+                              {toDate(pr.bestRecord.date).toLocaleDateString('en-US', { 
                                 month: 'short',
                                 day: 'numeric'
                               })}
                             </p>
                             <p className="text-xs text-gray-400">
-                              {pr.bestRecord.date.toDate().getFullYear()}
+                              {toDate(pr.bestRecord.date).getFullYear()}
                             </p>
                           </div>
                         </div>
@@ -640,7 +641,7 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
                   <p className="text-lg text-gray-500">× {selectedPR.bestRecord.reps}</p>
                 </div>
                 <p className="text-sm text-gray-400 mt-2">
-                  Set on {selectedPR.bestRecord.date.toDate().toLocaleDateString('en-US', { 
+                  Set on {toDate(selectedPR.bestRecord.date).toLocaleDateString('en-US', { 
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric'
@@ -718,7 +719,7 @@ export function PRPageEnhanced({ onNavigate, onLogout }: PRPageProps) {
                             {record.weight} kg × {record.reps}
                           </p>
                           <p className="text-xs text-gray-400">
-                            {record.date.toDate().toLocaleDateString('en-US', {
+                            {toDate(record.date).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric'

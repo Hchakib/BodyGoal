@@ -13,6 +13,8 @@ export const createNutritionEntry = async (
 
   const entry: NutritionEntry = {
     ...entryData,
+    // Forcer le champ date à être un Date/Timestamp Firestore
+    date: entryData.date ? new Date(entryData.date as any) : new Date(),
     createdAt: FieldValue.serverTimestamp(),
   };
 

@@ -4,7 +4,8 @@ import { templatesApi } from '../services/api';
 import {
   WorkoutTemplate,
   WorkoutTemplateData,
-  PRESET_TEMPLATES
+  PRESET_TEMPLATES,
+  TemplateFocus,
 } from '../firebase/workoutTemplates';
 import { toast } from 'sonner@2.0.3';
 import { Timestamp } from 'firebase/firestore';
@@ -26,12 +27,43 @@ export function useWorkoutTemplates() {
       try {
         setLoading(true);
         const response: any = await templatesApi.getTemplates();
-        
-        // Convert date strings to Date objects
-        const templatesWithDates = convertDatesInArray<WorkoutTemplate>(
-          response.templates || [],
-          ['createdAt']
-        );
+
+        const normalized = (response.templates || []).map((t: any, idx: number) => {
+          // Normalise le focus (évite un composant d'icône undefined)
+          const allowedFocus = ['strength', 'hypertrophy', 'mixed', 'endurance'];
+          const focus: TemplateFocus = allowedFocus.includes(t.focus)
+            ? t.focus
+            : (t.type === 'cardio' ? 'endurance' : 'mixed');
+
+          // Fallbacks pour les templates venant du chatbot/back sans le même shape
+          const workouts = Array.isArray(t.workouts) && t.workouts.length > 0
+            ? t.workouts
+            : [{
+                dayNumber: 1,
+                dayName: t.name || `Workout ${idx + 1}`,
+                exercises: (t.exercises || []).map((ex: any, i: number) => ({
+                  id: ex.id || `ex-${i}`,
+                  name: ex.name,
+                  sets: ex.sets || 3,
+                  reps: typeof ex.reps === 'string' ? ex.reps : (ex.reps || 10).toString(),
+                  notes: ex.notes || '',
+                })),
+              }];
+
+          return {
+            id: t.id,
+            userId: t.userId,
+            name: t.name,
+            daysPerWeek: t.daysPerWeek || workouts.length || 1,
+            focus,
+            description: t.description || '',
+            workouts,
+            isPreset: !!t.isPreset,
+            createdAt: t.createdAt,
+          } as WorkoutTemplate;
+        });
+
+        const templatesWithDates = convertDatesInArray<WorkoutTemplate>(normalized, ['createdAt']);
         setUserTemplates(templatesWithDates);
         setError(null);
       } catch (err) {
@@ -58,9 +90,13 @@ export function useWorkoutTemplates() {
       const newTemplate: WorkoutTemplate = {
         id: response.id,
         userId: currentUser.uid,
+        name: data.name,
         isPreset: false,
         createdAt: Timestamp.now(),
-        ...data
+        daysPerWeek: data.daysPerWeek,
+        focus: data.focus || 'mixed',
+        description: data.description || '',
+        workouts: data.workouts,
       };
       
       setUserTemplates([newTemplate, ...userTemplates]);

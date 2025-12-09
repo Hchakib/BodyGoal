@@ -14,6 +14,15 @@ app.use(cors());
 app.use(morgan('dev')); // Logs HTTP simples
 app.use(express.json());
 
+// Forward the parsed JSON body to downstream services so POST/PUT payloads are preserved
+const forwardBody = (proxyReq: any, req: Request) => {
+  if (!req.body || Object.keys(req.body).length === 0) return;
+  const bodyData = JSON.stringify(req.body);
+  proxyReq.setHeader('Content-Type', 'application/json');
+  proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+  proxyReq.write(bodyData);
+};
+
 // Health check de l'API Gateway
 app.get('/health', (req: Request, res: Response) => {
   res.json({
@@ -52,8 +61,9 @@ app.use(
     target: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
     pathRewrite: { '^/api/auth': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (Auth Service):', err.message);
+      console.error('Proxy error (Auth Service):', err.message);
       (res as Response).status(503).json({
         error: 'Auth Service unavailable',
         message: err.message,
@@ -69,8 +79,9 @@ app.use(
     target: process.env.WORKOUTS_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
     pathRewrite: { '^/api/workouts': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (Workouts Service):', err.message);
+      console.error('Proxy error (Workouts Service):', err.message);
       (res as Response).status(503).json({
         error: 'Workouts Service unavailable',
         message: err.message,
@@ -86,8 +97,9 @@ app.use(
     target: process.env.NUTRITION_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
     pathRewrite: { '^/api/nutrition': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (Nutrition Service):', err.message);
+      console.error('Proxy error (Nutrition Service):', err.message);
       (res as Response).status(503).json({
         error: 'Nutrition Service unavailable',
         message: err.message,
@@ -103,8 +115,9 @@ app.use(
     target: process.env.PR_SERVICE_URL || 'http://localhost:3004',
     changeOrigin: true,
     pathRewrite: { '^/api/pr': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (PR Service):', err.message);
+      console.error('Proxy error (PR Service):', err.message);
       (res as Response).status(503).json({
         error: 'PR Service unavailable',
         message: err.message,
@@ -120,8 +133,9 @@ app.use(
     target: process.env.TEMPLATES_SERVICE_URL || 'http://localhost:3005',
     changeOrigin: true,
     pathRewrite: { '^/api/templates': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (Templates Service):', err.message);
+      console.error('Proxy error (Templates Service):', err.message);
       (res as Response).status(503).json({
         error: 'Templates Service unavailable',
         message: err.message,
@@ -137,8 +151,9 @@ app.use(
     target: process.env.CHATBOT_SERVICE_URL || 'http://localhost:3006',
     changeOrigin: true,
     pathRewrite: { '^/api/chatbot': '' },
+    onProxyReq: forwardBody,
     onError: (err, req, res) => {
-      console.error('❌ Proxy error (Chatbot Service):', err.message);
+      console.error('Proxy error (Chatbot Service):', err.message);
       (res as Response).status(503).json({
         error: 'Chatbot Service unavailable',
         message: err.message,
@@ -165,14 +180,13 @@ app.use((req: Request, res: Response) => {
 
 // Démarrer le serveur
 app.listen(PORT, () => {
-  console.log(`\n🚀 API Gateway running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/health`);
-  console.log(`\n📡 Proxying to:`);
+  console.log(`API Gateway running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Proxying to:`);
   console.log(`   Auth Service:      ${process.env.AUTH_SERVICE_URL}`);
   console.log(`   Workouts Service:  ${process.env.WORKOUTS_SERVICE_URL}`);
   console.log(`   Nutrition Service: ${process.env.NUTRITION_SERVICE_URL}`);
   console.log(`   PR Service:        ${process.env.PR_SERVICE_URL}`);
   console.log(`   Templates Service: ${process.env.TEMPLATES_SERVICE_URL}`);
   console.log(`   Chatbot Service:   ${process.env.CHATBOT_SERVICE_URL}`);
-  console.log(`\n`);
 });

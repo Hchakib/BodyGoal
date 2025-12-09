@@ -40,7 +40,9 @@ export function AddMealDialog({ open, onOpenChange, onAdd }: AddMealDialogProps)
         carbs: Number(carbs) || 0,
         fats: Number(fats) || 0,
         fiber: fiber ? Number(fiber) : undefined,
-        mealType
+        mealType,
+        // Enregistre le repas pour la date/heure actuelle afin qu'il apparaisse immédiatement dans le journal
+        date: new Date()
       });
       
       // Reset form

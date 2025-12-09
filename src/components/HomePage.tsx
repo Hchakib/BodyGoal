@@ -15,6 +15,7 @@ import { useWorkouts } from '../hooks/useWorkouts';
 import { usePersonalRecords } from '../hooks/usePersonalRecords';
 import { useState, useMemo } from 'react';
 import { AddWorkoutDialog } from './AddWorkoutDialog';
+import { toDate } from '../utils/dateUtils';
 
 interface HomePageProps {
   onNavigate: (page: string) => void;
@@ -42,7 +43,7 @@ export default function HomePage({ onNavigate, onLogout }: HomePageProps) {
     today.setHours(0, 0, 0, 0);
     
     for (let i = 0; i < workouts.length; i++) {
-      const workoutDate = workouts[i].date.toDate();
+      const workoutDate = toDate(workouts[i].date);
       workoutDate.setHours(0, 0, 0, 0);
       
       const daysDiff = Math.floor((today.getTime() - workoutDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -73,7 +74,7 @@ export default function HomePage({ onNavigate, onLogout }: HomePageProps) {
       nextDay.setDate(currentDay.getDate() + 1);
       
       const workoutsOnDay = workouts.filter(w => {
-        const wDate = w.date.toDate();
+        const wDate = toDate(w.date);
         return wDate >= currentDay && wDate < nextDay;
       }).length;
       
@@ -92,7 +93,7 @@ export default function HomePage({ onNavigate, onLogout }: HomePageProps) {
       exercise: record.exerciseName,
       weight: `${record.weight} kg`,
       improvement: '+New',
-      date: formatRelativeDate(record.date.toDate())
+      date: formatRelativeDate(toDate(record.date))
     }));
   }, [records]);
 
@@ -148,16 +149,19 @@ export default function HomePage({ onNavigate, onLogout }: HomePageProps) {
     },
   ];
 
-  const recentSessions = workouts.slice(0, 3).map(workout => ({
-    title: workout.name,
-    date: workout.date.toDate().toLocaleDateString(),
-    duration: formatDuration(workout.duration),
-    exercises: workout.exercises.length,
-    volume: workout.exercises.reduce((total, ex) => 
-      total + ex.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0), 0
-    ).toLocaleString() + ' kg',
-    type: workout.type as 'strength' | 'cardio',
-  }));
+  const recentSessions = workouts.slice(0, 3).map(workout => {
+    const wDate = toDate(workout.date);
+    return {
+      title: workout.name,
+      date: wDate.toLocaleDateString(),
+      duration: formatDuration(workout.duration),
+      exercises: workout.exercises.length,
+      volume: workout.exercises.reduce((total, ex) => 
+        total + ex.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0), 0
+      ).toLocaleString() + ' kg',
+      type: workout.type as 'strength' | 'cardio',
+    };
+  });
 
   // Get top PR
   const topPR = records.length > 0 ? records[0] : null;
@@ -333,7 +337,7 @@ export default function HomePage({ onNavigate, onLogout }: HomePageProps) {
                     <span className="text-5xl bg-gradient-to-r from-[#22C55E] to-[#00D1FF] bg-clip-text text-transparent">{topPR.weight}</span>
                     <span className="text-2xl text-gray-400">kg</span>
                   </div>
-                  <p className="text-sm text-gray-400 mt-2">{formatRelativeDate(topPR.date.toDate())}</p>
+                  <p className="text-sm text-gray-400 mt-2">{formatRelativeDate(toDate(topPR.date))}</p>
                 </div>
               </div>
             )}

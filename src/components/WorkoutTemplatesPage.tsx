@@ -46,6 +46,8 @@ export default function WorkoutTemplatesPage({ onNavigate, onLogout }: WorkoutTe
         return 'from-purple-500 to-pink-500';
       case 'endurance':
         return 'from-blue-500 to-cyan-500';
+      default:
+        return 'from-purple-500 to-pink-500';
     }
   };
 
@@ -59,13 +61,31 @@ export default function WorkoutTemplatesPage({ onNavigate, onLogout }: WorkoutTe
         return Zap;
       case 'endurance':
         return Target;
+      default:
+        return Zap;
     }
   };
 
   const handleUseTemplate = (template: WorkoutTemplate) => {
-    // Store template in localStorage to use in start-session
-    localStorage.setItem('selectedTemplate', JSON.stringify(template));
-    onNavigate('start-session');
+    // Build a pseudo scheduledWorkout payload so StartSession démarre direct
+    const firstWorkout = template.workouts?.[0];
+    const exercises = (firstWorkout?.exercises || []).map(ex => ({
+      name: ex.name,
+      sets: ex.sets,
+      reps: typeof ex.reps === 'string' ? parseInt(ex.reps) || 10 : ex.reps,
+      weight: 0,
+      duration: 0,
+      notes: ex.notes || '',
+    }));
+
+    const scheduledWorkout = {
+      templateName: firstWorkout ? `${template.name} - ${firstWorkout.dayName}` : template.name,
+      type: template.focus === 'endurance' ? 'cardio' : 'strength',
+      exercises,
+      notes: firstWorkout?.notes || template.description || '',
+    };
+
+    onNavigate('start-session', { scheduledWorkout });
   };
 
   const handleDelete = async (templateId: string) => {

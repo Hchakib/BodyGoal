@@ -12,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PlanWorkoutDialog } from './PlanWorkoutDialog';
 import { FirebasePermissionsAlert } from './FirebasePermissionsAlert';
 import { ScheduledWorkoutsDebug } from './ScheduledWorkoutsDebug';
+import { toDate } from '../utils/dateUtils';
 
 interface PlanningPageProps {
   onNavigate: (page: string, data?: any) => void;
@@ -61,12 +62,12 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
 
       // Find completed workouts for this day
       const completedWorkouts = workouts.filter(w => 
-        w.date.toDate().toDateString() === dateStr
+        toDate(w.date).toDateString() === dateStr
       );
 
       // Find scheduled workouts for this day
       const scheduledForDay = scheduledWorkouts.filter(sw => 
-        sw.date.toDate().toDateString() === dateStr
+        toDate(sw.date).toDateString() === dateStr
       );
 
       let status: DayStatus = 'empty';
@@ -110,8 +111,8 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
   const nextScheduledWorkout = useMemo(() => {
     const now = new Date();
     const upcoming = scheduledWorkouts
-      .filter(sw => sw.date.toDate() > now)
-      .sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
+      .filter(sw => toDate(sw.date) > now)
+      .sort((a, b) => toDate(a.date).getTime() - toDate(b.date).getTime());
     
     return upcoming.length > 0 ? upcoming[0] : null;
   }, [scheduledWorkouts]);
@@ -138,12 +139,12 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
     dayEnd.setHours(23, 59, 59, 999);
 
     const dayWorkouts = workouts.filter(w => {
-      const wDate = w.date.toDate();
+      const wDate = toDate(w.date);
       return wDate >= dayStart && wDate <= dayEnd;
     });
 
     const dayPRs = records.filter(r => {
-      const rDate = r.date.toDate();
+      const rDate = toDate(r.date);
       return rDate >= dayStart && rDate <= dayEnd;
     });
 
@@ -165,7 +166,7 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
     return {
       date,
       workouts: filteredWorkouts,
-      scheduledWorkouts: scheduledWorkouts.filter(sw => sw.date.toDate().toDateString() === date.toDateString()),
+      scheduledWorkouts: scheduledWorkouts.filter(sw => toDate(sw.date).toDateString() === date.toDateString()),
       prs: dayPRs,
       status,
       isRecommended,
@@ -205,7 +206,7 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
     endOfWeek.setDate(startOfWeek.getDate() + 7);
 
     const weekWorkouts = workouts.filter(w => {
-      const wDate = w.date.toDate();
+      const wDate = toDate(w.date);
       return wDate >= startOfWeek && wDate < endOfWeek;
     });
 
@@ -665,7 +666,7 @@ export default function PlanningPage({ onNavigate, onLogout }: PlanningPageProps
                   <div>
                     <p className="text-white text-sm">Next workout: {nextScheduledWorkout.templateName}</p>
                     <p className="text-gray-400 text-xs">
-                      {nextScheduledWorkout.date.toDate().toLocaleDateString('en-US', { 
+                      {toDate(nextScheduledWorkout.date).toLocaleDateString('en-US', { 
                         weekday: 'long',
                         month: 'short',
                         day: 'numeric',
