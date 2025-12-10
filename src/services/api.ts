@@ -1,6 +1,5 @@
 /**
  * Service API pour communiquer avec l'API Gateway des microservices
- * Remplace les appels Firebase directs
  */
 
 import { auth } from '../firebase/config';
